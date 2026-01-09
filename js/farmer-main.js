@@ -10,13 +10,14 @@ function checkAuth() {
 
   if (!token || !user) {
     console.log(" No auth, redirecting to login");
-    window.location.href = "../index.html";
+    alert("You have to login as a farmer to access farmer dashboard ");
+    window.location.href = "./index.html";
     return false;
   }
 
   if (user.userType !== "farmer") {
-    alert("Access denied. Farmers only.");
-    window.location.href = "../index.html";
+    alert("You have to login as a farmer to access farmer dashboard ");
+    window.location.href = "./index.html";
     return false;
   }
 
@@ -46,8 +47,6 @@ function logout() {
 }
 
 async function editProduct(productId) {
-  console.log("✏️ Edit product function called:", productId);
-
   try {
     showNotification("Loading product details...", "info");
 
@@ -898,13 +897,11 @@ async function handleProductSubmit(e) {
       console.log("🆕 Creating product:", url);
     }
 
-    // IMPORTANT: Don't set Content-Type header for FormData
     const token = localStorage.getItem("token");
     response = await fetch(url, {
       method: method,
       headers: {
         Authorization: `Bearer ${token}`,
-        // Let browser set Content-Type with boundary
       },
       body: formData,
     });
@@ -922,7 +919,7 @@ async function handleProductSubmit(e) {
         "success"
       );
       closeProductModal();
-      await loadDashboardData(); // Refresh everything
+      await loadDashboardData();
     } else {
       showNotification(data.message || "Operation failed", "error");
     }
