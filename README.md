@@ -16,14 +16,22 @@ OurLocalMarket is currently a working prototype in its development stage, fully 
 - To see the app: open http://localhost:5000 after running `node server.js`.
 - TO ACCESS FARMER  DASHBOARDS
   -Click on "Get started " in the top navigation
+  
   -Select the "Farmer" account type
+  
   -Fill in your details using your real email address (verification email will be sent)
+  
   -Check your email inbox for verification link
+  
   -Click the verification link to activate your account
   
   -After verification, you'll be redirected to the home page
+  
   -Click "Login" and enter your verified email and password
+  
   -You'll be automatically directed to the Farmer Dashboard
+  
+- If u encounter server error during registeration check your mongoDB
 
 - TO ACCESS BUYER DASHBOARD  , you must register with the "Buyer" account type.
          - Please note that each email address can only be linked to one role—either farmer or buyer.
