@@ -1,6 +1,6 @@
 # OurLocalMarket
 
-OurLocalMarket is currently a working prototype in its development stage, fully functional in a local environment but not yet deployed as a public application. You can run the entire application locally by using node server.js and accessing it through http://localhost:5000. At this stage, the platform supports complete user registration, login, and role-based dashboards for both farmers and buyers—including features like product management, shopping cart, orders, and  payments. While it demonstrates the intended marketplace experience with email verification and a responsive interface, it remains a development build without live hosting, real payment processing, or public access.
+OurLocalMarket is a currently an e-commerce working prototype in its development stage, fully functional in a local environment but not yet deployed as a public application. You can run the entire application locally by using node server.js and accessing it through http://localhost:5000. At this stage, the platform supports complete user registration, login, and role-based dashboards for both farmers and buyers—including features like product management, shopping cart, orders, and  payments. While it demonstrates the intended marketplace experience with email verification and a responsive interface, it remains a development build without live hosting, real payment processing, or public access.
 
 ## Quick start
 1. Clone
