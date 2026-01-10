@@ -75,7 +75,7 @@ function removeFromCart(productId) {
 
 function updateTotals(subtotal) {
   document.getElementById("subtotal").textContent = `${subtotal} ETB`;
-  document.getElementById("total").textContent = `${subtotal} ETB`;
+  document.getElementById("total").textContent = `${subtotal + 50} ETB`; // 50 birr for delivery
 }
 
 function updateCartCount() {
@@ -84,3 +84,4 @@ function updateCartCount() {
   const cartCountElements = document.querySelectorAll("#cartCount");
   cartCountElements.forEach((el) => (el.textContent = totalItems));
 }
+
