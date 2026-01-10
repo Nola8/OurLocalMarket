@@ -36,9 +36,11 @@ OurLocalMarket is a currently an e-commerce working prototype in its development
 - TO ACCESS BUYER DASHBOARD  , you must register with the "Buyer" account type.
 - 
          - Please note that each email address can only be linked to one role—either farmer or buyer.
-        - If you have previously registered as a farmer with a certain email, you cannot reuse that same email to register as a buyer. You have two options:
+        - If you have previously registered as a farmer with a certain email, you cannot reuse that same email to register as a buyer.
+  You have two options:
             -Use a different email address when registering as a buyer.
-            - or Remove the existing user record from your local database (by deleting the corresponding entry in the user data file) before reusing the same email to sign up as a buyer.
+            - or Remove the existing user record from your local database (by deleting the corresponding entry in the user data file)
+   before reusing the same email to sign up as a buyer.
 
 Farmer Dashboard Features:
 
