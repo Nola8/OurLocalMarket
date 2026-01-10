@@ -49,6 +49,7 @@ OurLocalMarket is a currently an e-commerce working prototype in its development
 
 Farmer Dashboard Features:
 
+
 Post Products: List new agricultural products for sale
 Edit Products: Update product details, prices, or availability
 Delete Products: Remove products from your listings
