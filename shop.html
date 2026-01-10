@@ -786,9 +786,6 @@
 
         setupEventListeners();
 
-        if (window.innerWidth <= 992) {
-          document.getElementById("filtersContainer").style.display = "none";
-        }
       });
 
       function updateUserInfo() {
@@ -887,14 +884,6 @@
         }
       }
 
-      function toggleFilters() {
-        const filters = document.getElementById("filtersContainer");
-        if (filters.style.display === "none" || filters.style.display === "") {
-          filters.style.display = "flex";
-        } else {
-          filters.style.display = "none";
-        }
-      }
 
       async function showProfileModal() {
         const modal = document.createElement("div");
@@ -1054,7 +1043,6 @@
       window.clearFilters = clearFilters;
       window.showProfileModal = showProfileModal;
       window.closeProfileModal = closeProfileModal;
-      window.toggleFilters = toggleFilters;
     </script>
   </body>
 </html>
