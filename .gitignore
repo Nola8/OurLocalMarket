@@ -1,7 +1,5 @@
 node_modules/
 
-.env
-.env.local
 
 
 logs
@@ -43,4 +41,5 @@ coverage
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+
 Thumbs.db
