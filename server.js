@@ -66,7 +66,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-const frontendPath = path.resolve(__dirname, "..", "frontend");
+const frontendPath = path.resolve(__dirname);
 console.log("Frontend path:", frontendPath);
 
 if (fs.existsSync(frontendPath)) {
@@ -168,3 +168,4 @@ app.listen(PORT, () => {
   console.log(` Frontend path: ${frontendPath}`);
   console.log("=".repeat(50));
 });
+
