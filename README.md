@@ -23,7 +23,7 @@ A small marketplace app for local vendors (farmers) and buyers.
 - Install deps: `npm install`
 - Start (basic): `node server.js`
 - Dev (if available): `npm run dev`
-- Tests: `npm test` (if present)
+
 
 ## Notes
 - Port: app runs on port 5000 by default (http://localhost:5000). If your environment uses a different port, check `server.js` or `.env`.
