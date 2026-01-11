@@ -78,4 +78,5 @@ Payment Method: Payment,  to the farmer at the time of delivery or pickup
 
 ## Contributing
 - Fork → branch → PR. Keep changes small and descriptive.
+> Maintained and documented by Etsub (https://github.com/Etsubbb)
 
