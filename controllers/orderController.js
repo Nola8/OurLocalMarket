@@ -1,7 +1,7 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const User = require("../models/User");
-
+const Review = require("../models/Review");
 exports.createOrder = async (req, res) => {
   try {
     if (req.user.userType !== "buyer") {
@@ -20,7 +20,7 @@ exports.createOrder = async (req, res) => {
     for (const item of items) {
       const product = await Product.findById(item.product).populate(
         "farmer",
-        "city"
+        "city",
       );
 
       if (!product) {
@@ -172,12 +172,12 @@ exports.getFarmerOrders = async (req, res) => {
         const farmerItems = order.items.filter(
           (item) =>
             item.productDetails.farmer &&
-            item.productDetails.farmer.toString() === req.user.id.toString()
+            item.productDetails.farmer.toString() === req.user.id.toString(),
         );
 
         const farmerTotal = farmerItems.reduce(
           (sum, item) => sum + item.price * item.quantity,
-          0
+          0,
         );
 
         return {
@@ -279,7 +279,7 @@ exports.getOrder = async (req, res) => {
     const isFarmer = order.items.some(
       (item) =>
         item.productDetails.farmer &&
-        item.productDetails.farmer.toString() === req.user.id.toString()
+        item.productDetails.farmer.toString() === req.user.id.toString(),
     );
     const isAdmin = req.user.userType === "admin";
 
@@ -331,7 +331,7 @@ exports.updateOrderStatus = async (req, res) => {
     const isFarmer = order.items.some(
       (item) =>
         item.productDetails.farmer &&
-        item.productDetails.farmer.toString() === req.user.id.toString()
+        item.productDetails.farmer.toString() === req.user.id.toString(),
     );
     const isAdmin = req.user.userType === "admin";
 
@@ -429,6 +429,89 @@ exports.updatePaymentStatus = async (req, res) => {
   }
 };
 
+// In orderController.js - rateOrder function
+exports.rateOrder = async (req, res) => {
+  try {
+    const { rating, comment, productId } = req.body;
+    const orderId = req.params.id;
+    const userId = req.user.id;
+
+    if (!rating || !productId) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating and product ID are required",
+      });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be between 1 and 5",
+      });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    if (order.buyer.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to rate this order",
+      });
+    }
+
+    const productInOrder = order.items.find(
+      (item) => item.product.toString() === productId,
+    );
+
+    if (!productInOrder) {
+      return res.status(400).json({
+        success: false,
+        message: "Product not found in this order",
+      });
+    }
+
+    const existingReview = await Review.findOne({
+      product: productId,
+      user: userId,
+    });
+
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already rated this product",
+      });
+    }
+
+    const review = await Review.create({
+      product: productId,
+      user: userId,
+      order: orderId,
+      rating,
+      comment: comment || "",
+      isVerifiedPurchase: true,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Review submitted successfully",
+      review,
+    });
+  } catch (error) {
+    console.error("Rate order error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit rating",
+    });
+  }
+};
+
 exports.getFarmerOrderStats = async (req, res) => {
   try {
     const orders = await Order.find({
@@ -454,14 +537,14 @@ exports.getFarmerOrderStats = async (req, res) => {
       const farmerItems = order.items.filter(
         (item) =>
           item.productDetails.farmer &&
-          item.productDetails.farmer.toString() === req.user.id.toString()
+          item.productDetails.farmer.toString() === req.user.id.toString(),
       );
 
       if (farmerItems.length > 0) {
         stats.totalOrders++;
         const orderValue = farmerItems.reduce(
           (sum, item) => sum + item.price * item.quantity,
-          0
+          0,
         );
         stats.totalSales += orderValue;
 
@@ -519,7 +602,7 @@ exports.getFarmerOrderStats = async (req, res) => {
         orderCompletionRate:
           stats.totalOrders > 0
             ? parseFloat(
-                ((stats.deliveredOrders / stats.totalOrders) * 100).toFixed(2)
+                ((stats.deliveredOrders / stats.totalOrders) * 100).toFixed(2),
               )
             : 0,
       },
@@ -553,7 +636,7 @@ exports.getAdminStats = async (req, res) => {
     const orders = await Order.find({ paymentStatus: "paid" });
     const totalRevenue = orders.reduce(
       (sum, order) => sum + order.totalPrice,
-      0
+      0,
     );
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -598,6 +681,56 @@ exports.getAdminStats = async (req, res) => {
     });
   } catch (err) {
     console.error("Get admin stats error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+exports.markOrderAsPaid = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    if (order.paymentStatus === "paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Order already paid",
+      });
+    }
+
+    order.paymentStatus = "paid";
+    order.status = "processing"; // Move order to processing after successful payment
+    order.paidAt = new Date(); // Record payment timestamp
+
+    await order.save();
+
+    // Update farmer's earnings
+    for (const item of order.items) {
+      const farmerId = item.productDetails.farmer;
+      const productPrice = item.price;
+      const quantity = item.quantity;
+
+      const farmer = await User.findById(farmerId);
+      if (farmer) {
+        farmer.earnings += productPrice * quantity;
+        await farmer.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Order marked as paid and status updated to processing",
+      order,
+    });
+  } catch (err) {
+    console.error("Mark order as paid error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
