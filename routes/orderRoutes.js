@@ -24,5 +24,7 @@ router.get("/admin/stats", authorize("admin"), orderController.getAdminStats);
 router.get("/:id", orderController.getOrder);
 router.put("/:id/status", orderController.updateOrderStatus);
 router.put("/:id/payment-status", orderController.updatePaymentStatus);
+router.post("/:id/rate", protect, authorize("buyer"), orderController.rateOrder);
+
 
 module.exports = router;
