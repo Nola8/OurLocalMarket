@@ -81,6 +81,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
+    paidAt: Date, // New field to record when the order was paid
     trackingNumber: String,
     estimatedDelivery: Date,
     shippedAt: Date,
@@ -124,3 +125,4 @@ orderSchema.pre("save", async function (next) {
 });
 
 module.exports = mongoose.model("Order", orderSchema);
+
