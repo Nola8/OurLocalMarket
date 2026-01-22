@@ -71,7 +71,6 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    // Rating fields (cached for performance)
     averageRating: {
       type: Number,
       min: 0,
@@ -82,7 +81,6 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // Metadata
     views: {
       type: Number,
       default: 0,
@@ -94,7 +92,7 @@ const productSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 productSchema.index({ name: 1, farmer: 1 }, { unique: true });
@@ -134,32 +132,27 @@ productSchema.methods.increaseStock = function (quantity) {
 
 productSchema.methods.updateRating = async function () {
   const Review = mongoose.model("Review");
+
   const stats = await Review.aggregate([
     { $match: { product: this._id } },
     {
       $group: {
-        _id: null,
-        averageRating: { $avg: "$rating" },
-        totalReviews: { $sum: 1 },
+        _id: "$product",
+        avgRating: { $avg: "$rating" },
+        numReviews: { $sum: 1 },
       },
     },
   ]);
 
   if (stats.length > 0) {
-    this.averageRating = parseFloat(stats[0].averageRating.toFixed(1));
-    this.totalReviews = stats[0].totalReviews;
+    this.averageRating = stats[0].avgRating;
+    this.numReviews = stats[0].numReviews;
   } else {
     this.averageRating = 0;
-    this.totalReviews = 0;
+    this.numReviews = 0;
   }
 
   await this.save();
-
-  const User = mongoose.model("User");
-  const farmer = await User.findById(this.farmer);
-  if (farmer) {
-    await farmer.updateRating();
-  }
 };
 
 productSchema.pre("save", function (next) {
