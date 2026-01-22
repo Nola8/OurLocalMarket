@@ -15,6 +15,7 @@ const reviewSchema = new mongoose.Schema(
     order: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
+      required: true,
     },
     rating: {
       type: Number,
@@ -26,6 +27,7 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       maxlength: [500, "Comment cannot exceed 500 characters"],
       trim: true,
+      default: "",
     },
     images: [
       {
@@ -51,7 +53,7 @@ const reviewSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 reviewSchema.index({ product: 1, user: 1 }, { unique: true });
@@ -96,3 +98,4 @@ reviewSchema.post("remove", async function () {
 });
 
 module.exports = mongoose.model("Review", reviewSchema);
+
