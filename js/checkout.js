@@ -16,6 +16,15 @@ const CHAPA_CONFIG = {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user) {
+    CHAPA_CONFIG.firstName = user.fullName.split(" ")[0] || "";
+    CHAPA_CONFIG.lastName = user.fullName.split(" ").slice(1).join(" ") || "";
+    CHAPA_CONFIG.email = user.email || "";
+    CHAPA_CONFIG.phone = user.phone || "";
+  }
+
   loadOrderSummary();
   updateCartCount();
   setupEventListeners();
@@ -126,7 +135,7 @@ function handleSubmit(e) {
   }
 
   const paymentMethod = document.querySelector(
-    'input[name="payment"]:checked'
+    'input[name="payment"]:checked',
   ).value;
 
   if (paymentMethod === "chapa") {
@@ -153,111 +162,309 @@ function validateForm() {
   return true;
 }
 
-function processChapaPayment() {
-  CHAPA_CONFIG.txRef = `TXN-${Date.now()}-${Math.random()
-    .toString(36)
-    .substr(2, 9)}`;
+async function processChapaPayment() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-  const formData = {
-    fullName: document.getElementById("fullName").value,
-    email: document.getElementById("email").value,
-    phone: document.getElementById("phone").value,
+  if (!user || !user.id) {
+    alert("User not logged in or user ID not available.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert("Your cart is empty. Please add items before checking out.");
+    window.location.href = "shop.html";
+    return;
+  }
+
+  const shippingAddress = {
     address: document.getElementById("address").value,
     city: document.getElementById("city").value,
-    subcity: document.getElementById("subcity").value,
-    notes: document.getElementById("notes").value,
-    cart: JSON.parse(localStorage.getItem("cart")) || [],
+    phone: document.getElementById("phone").value,
   };
 
-  localStorage.setItem(
-    "pendingOrder",
-    JSON.stringify({
-      ...formData,
-      transactionRef: CHAPA_CONFIG.txRef,
-      amount: CHAPA_CONFIG.amount,
-      paymentMethod: "chapa",
-      timestamp: new Date().toISOString(),
-    })
-  );
+  const orderItems = cart.map((item) => ({
+    product: item.productId,
+    quantity: item.quantity,
+  }));
 
-  const chapa = new window.Chapa({
-    ...CHAPA_CONFIG,
-    onClose: () => {
-      console.log("Payment window closed");
-    },
-    onSuccess: (data) => {
-      console.log("Payment successful:", data);
+  const orderData = {
+    items: orderItems,
+    shippingAddress,
+    paymentMethod: "chapa",
+    notes: document.getElementById("notes").value,
+  };
 
-      localStorage.setItem("paymentData", JSON.stringify(data));
+  try {
+    const token = localStorage.getItem("token");
+    const createOrderResponse = await fetch(
+      "http://localhost:5000/api/orders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      },
+    );
 
+    const createOrderResult = await createOrderResponse.json();
+
+    if (!createOrderResponse.ok || !createOrderResult.success) {
+      throw new Error(createOrderResult.message || "Failed to create order");
+    }
+
+    const orderId = createOrderResult.order._id;
+
+    // Store orderId in localStorage for Chapa callback to use
+    localStorage.setItem("pendingOrder", JSON.stringify({ orderId: orderId }));
+
+    CHAPA_CONFIG.txRef = `TXN-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+    CHAPA_CONFIG.amount = createOrderResult.order.totalPrice;
+    CHAPA_CONFIG.callbackUrl = `http://localhost:5500/success.html?orderId=${orderId}&payment_status=success`;
+    CHAPA_CONFIG.returnUrl = `http://localhost:5500/success.html?orderId=${orderId}&payment_status=success`;
+
+    const chapa = new window.Chapa({
+      ...CHAPA_CONFIG,
+      onClose: () => {
+        console.log("Payment window closed");
+      },
+      onSuccess: async (data) => {
+        console.log("Payment successful:", data);
+
+        try {
+          const markPaidResponse = await fetch(
+            "http://localhost:5000/api/payments/mark-paid",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ orderId: orderId }),
+            },
+          );
+
+          const markPaidResult = await markPaidResponse.json();
+
+          if (!markPaidResponse.ok || !markPaidResult.success) {
+            throw new Error(
+              markPaidResult.message ||
+                "Failed to mark order as paid after Chapa success",
+            );
+          }
+          localStorage.removeItem("cart");
+          localStorage.removeItem("pendingOrder");
+          window.location.href = `success.html?orderId=${orderId}`;
+        } catch (error) {
+          console.error(
+            "Error marking order as paid after Chapa success:",
+            error,
+          );
+          alert(
+            "Payment was successful, but there was an issue updating order status. Please contact support.",
+          );
+        }
+      },
+      onError: (error) => {
+        console.error("Payment error:", error);
+        alert("Payment failed. Please try again.");
+        // Optionally, update order status to 'failed' on the backend
+      },
+    });
+
+    chapa.open();
+  } catch (error) {
+    console.error("Error initiating Chapa payment:", error);
+    alert("Failed to initiate payment: " + error.message);
+  }
+}
+
+async function simulateOrder(paymentMethod) {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (!user || !user.id) {
+    alert("User not logged in or user ID not available.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert("Your cart is empty. Please add items before checking out.");
+    window.location.href = "shop.html";
+    return;
+  }
+
+  const shippingAddress = {
+    address: document.getElementById("address").value,
+    city: document.getElementById("city").value,
+    phone: document.getElementById("phone").value,
+  };
+
+  const orderItems = cart.map((item) => ({
+    product: item.productId,
+    quantity: item.quantity,
+  }));
+
+  const orderData = {
+    items: orderItems,
+    shippingAddress,
+    paymentMethod: paymentMethod === "cash" ? "cash_on_delivery" : "chapa",
+    notes: document.getElementById("notes").value,
+  };
+
+  try {
+    const token = localStorage.getItem("token");
+    const createOrderResponse = await fetch(
+      "http://localhost:5000/api/orders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      },
+    );
+
+    const createOrderResult = await createOrderResponse.json();
+
+    if (!createOrderResponse.ok || !createOrderResult.success) {
+      throw new Error(createOrderResult.message || "Failed to create order");
+    }
+
+    const orderId = createOrderResult.order._id;
+    let redirectUrl = `success.html?orderId=${orderId}`;
+
+    if (paymentMethod === "cash") {
+      alert(
+        `Order placed successfully!\nOrder ID: ${createOrderResult.order.orderNumber}\nPayment: Cash on Delivery`,
+      );
       localStorage.removeItem("cart");
-      window.location.href = "success.html";
-    },
-    onError: (error) => {
-      console.error("Payment error:", error);
-      alert("Payment failed. Please try again.");
-    },
-  });
+      window.location.href = redirectUrl;
+    } else if (paymentMethod === "chapa") {
+      // Mark order as paid after Chapa payment success
+      const markPaidResponse = await fetch(
+        "http://localhost:5000/api/payments/mark-paid",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ orderId: orderId }),
+        },
+      );
 
-  chapa.open();
+      const markPaidResult = await markPaidResponse.json();
+
+      if (!markPaidResponse.ok || !markPaidResult.success) {
+        throw new Error(
+          markPaidResult.message || "Failed to mark order as paid",
+        );
+      }
+      localStorage.removeItem("cart");
+      window.location.href = redirectUrl;
+    }
+  } catch (error) {
+    console.error("Error placing order:", error);
+    alert("Failed to place order: " + error.message);
+  }
 }
 
-function simulateOrder(paymentMethod) {
-  const formData = {
-    fullName: document.getElementById("fullName").value,
-    email: document.getElementById("email").value,
-    phone: document.getElementById("phone").value,
+async function testChapaPayment() {
+  alert(
+    "This is a demo. In production, this would redirect to Chapa payment gateway.\n\nFor testing Chapa:\n1. Sign up at https://dashboard.chapa.co\n2. Get your test public key\n3. Replace CHAPUBK_TEST-xxxxxxxxxxxx with your actual key\n\nFor now, we'll simulate payment success and backend interaction.",
+  );
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (!user || !user.id) {
+    alert("User not logged in or user ID not available.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert("Your cart is empty. Please add items before checking out.");
+    window.location.href = "shop.html";
+    return;
+  }
+
+  const shippingAddress = {
     address: document.getElementById("address").value,
     city: document.getElementById("city").value,
-    subcity: document.getElementById("subcity").value,
+    phone: document.getElementById("phone").value,
+  };
+
+  const orderItems = cart.map((item) => ({
+    product: item.productId,
+    quantity: item.quantity,
+  }));
+
+  const orderData = {
+    items: orderItems,
+    shippingAddress,
+    paymentMethod: "chapa",
     notes: document.getElementById("notes").value,
-    cart: JSON.parse(localStorage.getItem("cart")) || [],
   };
 
-  const orderRef = `ORD-${Date.now()}-${Math.random()
-    .toString(36)
-    .substr(2, 6)}`;
+  try {
+    const token = localStorage.getItem("token");
+    const createOrderResponse = await fetch(
+      "http://localhost:5000/api/orders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      },
+    );
 
-  const order = {
-    ...formData,
-    orderId: orderRef,
-    paymentMethod: paymentMethod,
-    amount: CHAPA_CONFIG.amount,
-    status: "pending",
-    timestamp: new Date().toISOString(),
-  };
+    const createOrderResult = await createOrderResponse.json();
 
-  localStorage.setItem("currentOrder", JSON.stringify(order));
+    if (!createOrderResponse.ok || !createOrderResult.success) {
+      throw new Error(
+        createOrderResult.message ||
+          "Failed to create order during test payment",
+      );
+    }
 
-  alert(
-    `Order placed successfully!\nOrder ID: ${orderRef}\nPayment: ${
-      paymentMethod === "cash" ? "Cash on Delivery" : "Chapa"
-    }`
-  );
+    const orderId = createOrderResult.order._id;
 
-  localStorage.removeItem("cart");
+    const markPaidResponse = await fetch(
+      "http://localhost:5000/api/payments/mark-paid",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: orderId }),
+      },
+    );
 
-  window.location.href = "success.html";
-}
+    const markPaidResult = await markPaidResponse.json();
 
-function testChapaPayment() {
-  alert(
-    "This is a demo. In production, this would redirect to Chapa payment gateway.\n\nFor testing Chapa:\n1. Sign up at https://dashboard.chapa.co\n2. Get your test public key\n3. Replace CHAPUBK_TEST-xxxxxxxxxxxx with your actual key\n\nFor now, we'll simulate payment success."
-  );
+    if (!markPaidResponse.ok || !markPaidResult.success) {
+      throw new Error(
+        markPaidResult.message ||
+          "Failed to mark order as paid during test payment",
+      );
+    }
 
-  // Simulate successful payment
-  const orderRef = `ORD-${Date.now()}-${Math.random()
-    .toString(36)
-    .substr(2, 6)}`;
-  localStorage.setItem(
-    "currentOrder",
-    JSON.stringify({
-      orderId: orderRef,
-      paymentMethod: "chapa",
-      status: "paid",
-      timestamp: new Date().toISOString(),
-    })
-  );
-  localStorage.removeItem("cart");
-  window.location.href = "success.html";
+    localStorage.removeItem("cart");
+    window.location.href = `success.html?orderId=${orderId}`;
+  } catch (error) {
+    console.error("Error during test Chapa payment:", error);
+    alert("Test payment failed: " + error.message);
+  }
 }
