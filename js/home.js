@@ -858,3 +858,4 @@ window.selectUserType = selectUserType;
 window.showForgotPassword = showForgotPassword;
 window.showLoginForm = showLoginForm;
 window.handleLogout = handleLogout;
+
