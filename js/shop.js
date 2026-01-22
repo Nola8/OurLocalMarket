@@ -191,7 +191,7 @@ function renderProducts(products) {
                 <img src="${product.image}" 
                      alt="${product.name}" 
                      class="product-image"
-                     onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'">
+                     onerror="this.src='https://www.fooddudes.ie/wp-content/uploads/2020/04/vegetable_FoodDudess.jpg'">
                 <div class="category-badge">${categoryName.toUpperCase()}</div>
             </div>
             
