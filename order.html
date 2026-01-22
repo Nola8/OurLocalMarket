@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,11 +9,9 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-       /* Main container padding */
       .orders-container {
         padding: 20px;
       }
-      /* Header layout for orders page */
       .orders-header {
         display: flex;
         justify-content: space-between;
@@ -322,7 +320,7 @@
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
           </a>
-          
+
           <a href="./order.html" class="nav-item active">
             <i class="fas fa-shopping-cart"></i>
             <span>Orders</span>
@@ -749,13 +747,13 @@
                         <td>
                             <span class="order-id">${order.id}</span>
                             <div class="order-timeline">${order.date} at ${
-                order.time
-              }</div>
+                              order.time
+                            }</div>
                         </td>
                         <td>
                             <div class="customer-info">
                                 <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  order.customer.name
+                                  order.customer.name,
                                 )}&background=2f8f44&color=fff" 
                                      alt="${
                                        order.customer.name
@@ -772,7 +770,7 @@
                                     ${order.items
                                       .map(
                                         (item) =>
-                                          `<span class="item-tag">${item.name}</span>`
+                                          `<span class="item-tag">${item.name}</span>`,
                                       )
                                       .join("")}
                                 </div>
@@ -824,7 +822,7 @@
                             </div>
                         </td>
                     </tr>
-                `
+                `,
             )
             .join("");
         }
@@ -847,7 +845,7 @@
           filteredOrders = [...sampleOrders];
         } else {
           filteredOrders = sampleOrders.filter(
-            (order) => order.status === status
+            (order) => order.status === status,
           );
         }
 
@@ -860,8 +858,8 @@
               order.id.toLowerCase().includes(searchTerm) ||
               order.customer.name.toLowerCase().includes(searchTerm) ||
               order.items.some((item) =>
-                item.name.toLowerCase().includes(searchTerm)
-              )
+                item.name.toLowerCase().includes(searchTerm),
+              ),
           );
         }
 
@@ -878,7 +876,7 @@
           filteredOrders = [...sampleOrders];
         } else {
           filteredOrders = sampleOrders.filter(
-            (order) => order.status === currentFilter
+            (order) => order.status === currentFilter,
           );
         }
 
@@ -888,8 +886,8 @@
               order.id.toLowerCase().includes(searchTerm) ||
               order.customer.name.toLowerCase().includes(searchTerm) ||
               order.items.some((item) =>
-                item.name.toLowerCase().includes(searchTerm)
-              )
+                item.name.toLowerCase().includes(searchTerm),
+              ),
           );
         }
 
@@ -929,7 +927,7 @@
           (order) =>
             order.status === "pending" ||
             order.status === "processing" ||
-            order.status === "shipped"
+            order.status === "shipped",
         ).length;
         document.getElementById("ordersBadge").textContent = pendingOrders;
       }
@@ -955,8 +953,8 @@
                             <div class="info-item">
                                 <span class="info-label">Date & Time:</span>
                                 <span class="info-value">${order.date} at ${
-          order.time
-        }</span>
+                                  order.time
+                                }</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Status:</span>
@@ -1057,7 +1055,7 @@
                                         <td>${item.price}</td>
                                         <td>${item.total}</td>
                                     </tr>
-                                `
+                                `,
                                   )
                                   .join("")}
                                 <tr class="total-row">
@@ -1177,14 +1175,14 @@
       function markAsDelivered(orderId) {
         if (
           !confirm(
-            `Are you sure you want to mark order ${orderId} as delivered?`
+            `Are you sure you want to mark order ${orderId} as delivered?`,
           )
         ) {
           return;
         }
 
         const orderIndex = sampleOrders.findIndex(
-          (order) => order.id === orderId
+          (order) => order.id === orderId,
         );
         if (orderIndex > -1) {
           sampleOrders[orderIndex].status = "delivered";
@@ -1193,7 +1191,7 @@
           let localOrders = savedOrders ? JSON.parse(savedOrders) : [];
 
           const localIndex = localOrders.findIndex(
-            (order) => order.id === orderId
+            (order) => order.id === orderId,
           );
           if (localIndex > -1) {
             localOrders[localIndex].status = "delivered";
@@ -1206,13 +1204,13 @@
           localStorage.setItem("farmerOrders", JSON.stringify(localOrders));
 
           const deliveredOrders = JSON.parse(
-            localStorage.getItem("deliveredOrders") || "[]"
+            localStorage.getItem("deliveredOrders") || "[]",
           );
           if (!deliveredOrders.includes(orderId)) {
             deliveredOrders.push(orderId);
             localStorage.setItem(
               "deliveredOrders",
-              JSON.stringify(deliveredOrders)
+              JSON.stringify(deliveredOrders),
             );
           }
 
@@ -1222,28 +1220,28 @@
 
           showNotification(
             `Order ${orderId} marked as delivered! Buyer has been notified.`,
-            "success"
+            "success",
           );
         }
       }
 
       function editOrder(orderId) {
         alert(
-          `Edit order ${orderId} - This would open an edit form in a real application.`
+          `Edit order ${orderId} - This would open an edit form in a real application.`,
         );
       }
 
       function deleteOrder(orderId) {
         if (
           !confirm(
-            `Are you sure you want to delete order ${orderId}? This action cannot be undone.`
+            `Are you sure you want to delete order ${orderId}? This action cannot be undone.`,
           )
         ) {
           return;
         }
 
         const orderIndex = sampleOrders.findIndex(
-          (order) => order.id === orderId
+          (order) => order.id === orderId,
         );
         if (orderIndex > -1) {
           sampleOrders.splice(orderIndex, 1);
@@ -1264,7 +1262,7 @@
 
       function exportOrders() {
         alert(
-          "Exporting orders... This would download a CSV file in a real application."
+          "Exporting orders... This would download a CSV file in a real application.",
         );
       }
 
@@ -1442,7 +1440,6 @@
 
         modal.style.display = "flex";
 
-        // Add form submit event listener
         const form = document.getElementById("profileForm");
         form.addEventListener("submit", handleProfileSubmit);
       }
@@ -1501,7 +1498,7 @@
         if (farmElement) farmElement.textContent = user.farmName || "Farm";
 
         const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          user.fullName || "Farmer"
+          user.fullName || "Farmer",
         )}&background=2f8f44&color=fff`;
 
         if (avatarImg) avatarImg.src = avatarUrl;
@@ -1578,6 +1575,5 @@
     </script>
   </body>
 </html>
-
 
 
