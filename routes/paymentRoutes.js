@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const { protect } = require("../middleware/authMiddleware");
+const { markOrderAsPaid } = require("../controllers/orderController");
 
-router.post("/pay", (req, res) => {
+router.post("/pay", protect, (req, res) => {
   const { amount, method } = req.body;
 
   if (!amount || !method) {
@@ -16,5 +18,7 @@ router.post("/pay", (req, res) => {
     transactionId: Date.now(),
   });
 });
+
+router.post("/mark-paid", protect, markOrderAsPaid);
 
 module.exports = router;
