@@ -15,8 +15,8 @@ async function loadProducts() {
 
     const selectedCategories = Array.from(
       document.querySelectorAll(
-        '#categoryFilters input[type="checkbox"]:checked'
-      )
+        '#categoryFilters input[type="checkbox"]:checked',
+      ),
     ).map((cb) => cb.value);
 
     const params = new URLSearchParams();
@@ -43,7 +43,7 @@ async function loadProducts() {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/products?${params.toString()}`
+        `${API_BASE_URL}/products?${params.toString()}`,
       );
 
       if (response.ok) {
@@ -58,15 +58,17 @@ async function loadProducts() {
             image: product.image?.startsWith("http")
               ? product.image
               : product.image?.startsWith("/")
-              ? `http://localhost:5000${product.image}`
-              : product.image ||
-                "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                ? `http://localhost:5000${product.image}`
+                : product.image ||
+                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
             farmer:
               product.farmer?.fullName ||
               product.farmer?.farmName ||
               "Local Farmer",
             location:
               product.farmer?.city || product.farmer?.farmLocation || "Local",
+            farmerAverageRating: product.farmer?.averageRating || 0,
+            farmerNumberOfRatings: product.farmer?.numberOfRatings || 0,
             stock: product.stock || 0,
             description: product.description || "",
             _id: product._id,
@@ -95,7 +97,7 @@ async function loadProducts() {
       console.log(
         "🔄 Merged API and local products:",
         allProducts.length,
-        "total"
+        "total",
       );
     }
 
@@ -147,7 +149,6 @@ function sortProducts(products, sortBy) {
     case "name":
       return sorted.sort((a, b) => a.name.localeCompare(b.name));
     case "rating":
-      // Since we don't have ratings in data.js, sort by price as fallback
       return sorted.sort((a, b) => b.price - a.price);
     case "newest":
     default:
@@ -196,8 +197,8 @@ function renderProducts(products) {
             
             <div class="product-info">
                 <div class="product-name" onclick="viewProductDetails(event, '${productId}')" style="cursor: pointer;">${
-        product.name
-      }</div>
+                  product.name
+                }</div>
                 
                 <div class="product-price">
                     ${product.price.toLocaleString()} ETB
@@ -233,11 +234,11 @@ function renderProducts(products) {
                       inCart ? "btn-added" : ""
                     }" 
                             onclick="addToCart(event, '${productId}', '${product.name.replace(
-        /'/g,
-        "\\'"
-      )}', ${product.price}, '${product.unit}', '${product.image}', ${
-        isAvailable ? "true" : "false"
-      })" 
+                              /'/g,
+                              "\\'",
+                            )}', ${product.price}, '${product.unit}', '${product.image}', ${
+                              isAvailable ? "true" : "false"
+                            })" 
                             ${!isAvailable ? "disabled" : ""}
                             id="cartBtn_${productId}">
                         <i class="fas ${
@@ -247,8 +248,8 @@ function renderProducts(products) {
                           inCart
                             ? "✓ Added to Cart"
                             : isAvailable
-                            ? "Add to Basket"
-                            : "Out of Stock"
+                              ? "Add to Basket"
+                              : "Out of Stock"
                         }
                     </button>
                 </div>
@@ -287,7 +288,7 @@ function updateFilters(allProducts) {
                 ${formatCategory(category)} (${count})
             </label>
         </div>
-    `
+    `,
     )
     .join("");
 
@@ -296,7 +297,7 @@ function updateFilters(allProducts) {
     .map(
       ([location, count]) => `
         <option value="${location}">${location} (${count})</option>
-    `
+    `,
     )
     .join("");
   locationFilter.innerHTML = `<option value="">All Locations</option>${locationOptions}`;
@@ -334,7 +335,7 @@ function addToCart(
   price,
   unit,
   image,
-  isAvailable = true
+  isAvailable = true,
 ) {
   event.stopPropagation();
   event.preventDefault();
@@ -373,6 +374,8 @@ function addToCart(
       unit: unit,
       image: image,
       quantity: quantity,
+      // Ensure the _id is also stored for consistency if needed later
+      id: productId,
     });
   }
 
@@ -401,7 +404,7 @@ function addToCart(
 
 function simpleAddToCart(productId, quantity = 1) {
   const product = window.currentProducts?.find(
-    (p) => (p._id || p.id) === productId
+    (p) => (p._id || p.id) === productId,
   );
 
   if (!product) {
@@ -423,6 +426,7 @@ function simpleAddToCart(productId, quantity = 1) {
       unit: product.unit,
       image: product.image,
       quantity: quantity,
+      id: productId,
     });
   }
 
@@ -459,9 +463,9 @@ async function viewProductDetails(event, productId) {
             image: data.product.image?.startsWith("http")
               ? data.product.image
               : data.product.image?.startsWith("/")
-              ? `http://localhost:5000${data.product.image}`
-              : data.product.image ||
-                "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                ? `http://localhost:5000${data.product.image}`
+                : data.product.image ||
+                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
             farmer:
               data.product.farmer?.fullName ||
               data.product.farmer?.farmName ||
@@ -525,8 +529,8 @@ function showProductModal(product) {
                             
                             <div style="font-size: 2rem; font-weight: 700; color: #2f8f44; margin: 1rem 0;">
                                 ${product.price.toLocaleString()} ETB/${
-    product.unit
-  }
+                                  product.unit
+                                }
                             </div>
                             
                             ${
@@ -556,7 +560,7 @@ function showProductModal(product) {
                             <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px; margin: 1.5rem 0;">
                                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                                     <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                      product.farmer
+                                      product.farmer,
                                     )}&background=2f8f44&color=fff" 
                                          alt="${product.farmer}" 
                                          style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
@@ -567,6 +571,15 @@ function showProductModal(product) {
                                         <div style="color: #666; font-size: 0.9rem;">${
                                           product.location
                                         }</div>
+                                        ${
+                                          product.farmerAverageRating !==
+                                            undefined &&
+                                          product.farmerAverageRating > 0
+                                            ? `<div style="color: #ffc107; font-size: 0.9rem;">
+                                                 <i class="fas fa-star"></i> ${product.farmerAverageRating.toFixed(1)} (${product.farmerNumberOfRatings} reviews)
+                                               </div>`
+                                            : `<div style="color: #666; font-size: 0.9rem;">No ratings yet</div>`
+                                        }
                                     </div>
                                 </div>
                                 <p style="color: #666; font-size: 0.9rem; margin: 0;">
@@ -617,7 +630,7 @@ function addToCartFromModal(event, productId) {
     parseInt(document.getElementById("quantityInput")?.value) || 1;
 
   const product = window.currentProducts?.find(
-    (p) => (p._id || p.id) === productId
+    (p) => (p._id || p.id) === productId,
   );
 
   if (!product) {
@@ -639,6 +652,7 @@ function addToCartFromModal(event, productId) {
       unit: product.unit,
       image: product.image,
       quantity: quantity,
+      id: productId,
     });
   }
 
