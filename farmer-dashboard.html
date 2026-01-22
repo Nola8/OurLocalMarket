@@ -130,8 +130,8 @@
                 <i class="fas fa-star" style="color: #9c27b0"></i>
               </div>
               <div class="stat-info">
-                <h3>4.2</h3>
-                <p>Average Rating</p>
+                <h3 id="farmerAverageRating">4.2</h3>
+                <p id="farmerRatingCount">Average Rating</p>
               </div>
               <span class="stat-trend up">+0.3</span>
             </div>
@@ -282,192 +282,31 @@
               </div>
             </div>
 
-            <div class="side-cards">
-<div class="card">
+              <div class="side-cards">
+                <div class="card">
+                  <div class="card-header">
+                    <h3>Recent Orders</h3>
+                    <a href="#" class="view-all">View All</a>
+                  </div>
+                  <div class="orders-list" id="recentOrdersList"></div>
+                </div>
+              </div>
+              <div class="card" id="reviewsCard">
   <div class="card-header">
-    <h3>Recent Orders</h3>
-    <a href="#" class="view-all">View All</a>
+    <h3>Recent Customer Reviews</h3>
+    <a href="rating.html" class="view-all">View All</a>
   </div>
-  <div class="orders-list">
-    <div class="order-item">
-      <div class="order-info">
-        <h4>#ORD-7842</h4>
-        <p>5 items • 2 hours ago</p>
-        <div class="order-actions">
-          <button class="btn-small btn-primary" onclick="viewOrderDetails('ORD-7842')">
-            <i class="fas fa-eye"></i> View
-          </button>
-          <button class="btn-small btn-success" onclick="markAsDelivered('ORD-7842')">
-            <i class="fas fa-truck"></i> Mark Delivered
-          </button>
-        </div>
-      </div>
-      <div class="order-status">
-        <span class="status processing">Processing</span>
-        <span class="amount">450 ETB</span>
-      </div>
-    </div>
-    
-    <div class="order-item">
-      <div class="order-info">
-        <h4>#ORD-7841</h4>
-        <p>3 items • 5 hours ago</p>
-        <div class="order-actions">
-          <button class="btn-small btn-primary" onclick="viewOrderDetails('ORD-7841')">
-            <i class="fas fa-eye"></i> View
-          </button>
-          <button class="btn-small btn-success" onclick="markAsDelivered('ORD-7841')">
-            <i class="fas fa-truck"></i> Mark Delivered
-          </button>
-        </div>
-      </div>
-      <div class="order-status">
-        <span class="status shipped">Shipped</span>
-        <span class="amount">280 ETB</span>
-      </div>
-    </div>
-    
-    <div class="order-item">
-      <div class="order-info">
-        <h4>#ORD-7840</h4>
-        <p>2 items • 1 day ago</p>
-        <div class="order-actions">
-          <button class="btn-small btn-primary" onclick="viewOrderDetails('ORD-7840')">
-            <i class="fas fa-eye"></i> View
-          </button>
-          <button class="btn-small btn-success" onclick="markAsDelivered('ORD-7840')">
-            <i class="fas fa-truck"></i> Mark Delivered
-          </button>
-        </div>
-      </div>
-      <div class="order-status">
-        <span class="status delivered">Delivered</span>
-        <span class="amount">150 ETB</span>
-      </div>
-    </div>
-    
-    <div class="order-item">
-      <div class="order-info">
-        <h4>#ORD-7839</h4>
-        <p>8 items • 2 days ago</p>
-        <div class="order-actions">
-          <button class="btn-small btn-primary" onclick="viewOrderDetails('ORD-7839')">
-            <i class="fas fa-eye"></i> View
-          </button>
-          <button class="btn-small btn-success" onclick="markAsDelivered('ORD-7839')">
-            <i class="fas fa-truck"></i> Mark Delivered
-          </button>
-        </div>
-      </div>
-      <div class="order-status">
-        <span class="status pending">Pending</span>
-        <span class="amount">620 ETB</span>
-      </div>
-    </div>
+  <div class="reviews-list" id="farmerReviewsList" style="padding: 12px;">
+    <p style="color:#666; text-align:center; margin: 1rem 0;">Loading reviews…</p>
   </div>
 </div>
-              </div>
 
               <!-- Quick Stats -->
-              <div class="card">
-                <div class="card-header">
-                  <h3>Quick Stats</h3>
-                </div>
-                <div class="quick-stats">
-                  <div class="stat-item">
-                    <div class="stat-label">
-                      <i class="fas fa-clock" style="color: #ff9800"></i>
-                      <span>Pending Orders</span>
-                    </div>
-                    <span class="stat-value">6</span>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-label">
-                      <i class="fas fa-check-circle" style="color: #4caf50"></i>
-                      <span>Completed</span>
-                    </div>
-                    <span class="stat-value">42</span>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-label">
-                      <i class="fas fa-users" style="color: #2196f3"></i>
-                      <span>Customers</span>
-                    </div>
-                    <span class="stat-value">28</span>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-label">
-                      <i class="fas fa-star" style="color: #ffc107"></i>
-                      <span>Rating</span>
-                    </div>
-                    <span class="stat-value">4.2/5</span>
-                  </div>
-                </div>
-              </div>
+              
             </div>
           </div>
 
-          <!-- Performance Chart -->
-          <div class="card chart-card">
-            <div class="card-header">
-              <h3>Sales Performance (Last 7 Days)</h3>
-              <select class="period-select">
-                <option>Weekly</option>
-                <option>Monthly</option>
-                <option>Yearly</option>
-              </select>
-            </div>
-            <div class="chart-placeholder">
-              <div class="chart-bars">
-                <div
-                  class="chart-bar"
-                  style="height: 60%"
-                  data-day="Mon"
-                  data-value="1200"
-                ></div>
-                <div
-                  class="chart-bar"
-                  style="height: 80%"
-                  data-day="Tue"
-                  data-value="1600"
-                ></div>
-                <div
-                  class="chart-bar"
-                  style="height: 45%"
-                  data-day="Wed"
-                  data-value="900"
-                ></div>
-                <div
-                  class="chart-bar"
-                  style="height: 95%"
-                  data-day="Thu"
-                  data-value="1900"
-                ></div>
-                <div
-                  class="chart-bar"
-                  style="height: 70%"
-                  data-day="Fri"
-                  data-value="1400"
-                ></div>
-                <div
-                  class="chart-bar"
-                  style="height: 85%"
-                  data-day="Sat"
-                  data-value="1700"
-                ></div>
-                <div
-                  class="chart-bar"
-                  style="height: 50%"
-                  data-day="Sun"
-                  data-value="1000"
-                ></div>
-              </div>
-              <div class="chart-labels">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span
-                ><span>Fri</span><span>Sat</span><span>Sun</span>
-              </div>
-            </div>
-          </div>
+        
         </div>
       </main>
     </div>
