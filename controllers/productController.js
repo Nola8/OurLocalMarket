@@ -31,7 +31,7 @@ const handleImageUpload = (req, product = null) => {
     req.body.imageData.startsWith("data:image")
   ) {
     const matches = req.body.imageData.match(
-      /^data:image\/([A-Za-z-+/]+);base64,(.+)$/
+      /^data:image\/([A-Za-z-+/]+);base64,(.+)$/,
     );
 
     if (matches && matches.length === 3) {
@@ -142,7 +142,7 @@ exports.getProducts = async (req, res) => {
     const products = await Product.find(filter)
       .populate(
         "farmer",
-        "fullName email phone farmName farmLocation city address"
+        "fullName email phone farmName farmLocation city address",
       )
       .sort(sort)
       .skip(skip)
@@ -212,7 +212,7 @@ exports.getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate(
       "farmer",
-      "fullName email phone farmName farmLocation city address rating"
+      "fullName email phone farmName farmLocation city address averageRating numberOfRatings",
     );
 
     if (!product) {
@@ -418,12 +418,10 @@ exports.updateProduct = async (req, res) => {
     console.log("File received:", req.file ? req.file.filename : "No file");
     console.log("Body (raw):", req.body);
 
-    // Log all body fields
     for (let key in req.body) {
       console.log(`Body field [${key}]:`, req.body[key]);
     }
 
-    // Check if user is authenticated
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -711,14 +709,14 @@ exports.getFarmerStats = async (req, res) => {
       const farmerItems = order.items.filter(
         (item) =>
           item.productDetails.farmer &&
-          item.productDetails.farmer.toString() === req.user.id.toString()
+          item.productDetails.farmer.toString() === req.user.id.toString(),
       );
 
       if (farmerItems.length > 0) {
         salesStats.totalOrders++;
         const orderValue = farmerItems.reduce(
           (sum, item) => sum + item.price * item.quantity,
-          0
+          0,
         );
         salesStats.totalSales += orderValue;
 
@@ -760,7 +758,7 @@ exports.getFarmerStats = async (req, res) => {
           averageOrderValue:
             salesStats.totalOrders > 0
               ? parseFloat(
-                  (salesStats.totalSales / salesStats.totalOrders).toFixed(2)
+                  (salesStats.totalSales / salesStats.totalOrders).toFixed(2),
                 )
               : 0,
           monthlySales: monthlySalesArray,
@@ -770,7 +768,7 @@ exports.getFarmerStats = async (req, res) => {
                   (
                     (salesStats.deliveredOrders / salesStats.totalOrders) *
                     100
-                  ).toFixed(2)
+                  ).toFixed(2),
                 )
               : 0,
         },
@@ -807,7 +805,7 @@ exports.getFarmerFeedback = async (req, res) => {
       productRatings.length > 0
         ? productRatings.reduce(
             (sum, rating) => sum + rating.averageRating,
-            0
+            0,
           ) / productRatings.length
         : 0;
 
@@ -956,3 +954,4 @@ exports.deleteProductAdmin = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
