@@ -73,7 +73,7 @@ async function editProduct(productId) {
     console.error(" Error in editProduct:", error);
     showNotification(
       "Failed to load product for editing: " + error.message,
-      "error"
+      "error",
     );
   }
 }
@@ -150,28 +150,67 @@ function setupEventListeners() {
 async function loadDashboardData() {
   try {
     await loadFarmerProducts();
+    await loadFarmerFeedback();
 
-    const statsResponse = await fetch(`${API_BASE_URL}/products/farmer/stats`, {
+    const farmerProfileResponse = await fetch(`${API_BASE_URL}/auth/profile`, {
+      headers: getAuthHeaders(),
+    });
+
+    let farmerAverageRating = 0;
+    let farmerNumberOfRatings = 0;
+
+    if (farmerProfileResponse.ok) {
+      const profileData = await farmerProfileResponse.json();
+      if (profileData.success && profileData.user) {
+        farmerAverageRating = profileData.user.averageRating || 0;
+        farmerNumberOfRatings = profileData.user.numberOfRatings || 0;
+      }
+    } else {
+      console.error(
+        "❌ Failed to load farmer profile for ratings:",
+        await farmerProfileResponse.text(),
+      );
+    }
+
+    const statsResponse = await fetch(`${API_BASE_URL}/orders/farmer/stats`, {
       headers: getAuthHeaders(),
     });
 
     if (statsResponse.ok) {
       const statsData = await statsResponse.json();
       console.log("📊 Stats received:", statsData);
-      updateStats(statsData.stats);
+      // Pass the actual average rating to updateStats
+      updateStats({
+        ...statsData.stats,
+        averageRating: farmerAverageRating,
+        numberOfRatings: farmerNumberOfRatings,
+      });
     } else {
       console.error("❌ Failed to load stats:", await statsResponse.text());
     }
 
-    const ordersResponse = await fetch(`${API_BASE_URL}/orders/farmer/recent`, {
+    const ordersResponse = await fetch(`${API_BASE_URL}/orders/farmer/orders`, {
       headers: getAuthHeaders(),
     });
 
+    console.log("Orders API Response Status:", ordersResponse.status);
+
     if (ordersResponse.ok) {
       const ordersData = await ordersResponse.json();
+      console.log("ORDERS DATA FROM API:", ordersData);
       renderRecentOrders(ordersData.orders);
     } else {
-      console.error("Failed to load orders:", await ordersResponse.text());
+      const errorText = await ordersResponse.text();
+      console.error(
+        "❌ API Error - Failed to load orders. Status:",
+        ordersResponse.status,
+        "Response:",
+        errorText,
+      );
+      showNotification(
+        `Failed to load orders: ${ordersResponse.status} - ${errorText.substring(0, 100)}...`,
+        "error",
+      );
     }
   } catch (error) {
     console.error(" Error loading dashboard data:", error);
@@ -187,7 +226,7 @@ async function loadFarmerProducts() {
       `${API_BASE_URL}/products/farmer/my-products`,
       {
         headers: getAuthHeaders(),
-      }
+      },
     );
 
     console.log("📦 Products response:", response.status);
@@ -197,7 +236,7 @@ async function loadFarmerProducts() {
       console.log(
         "📦 Products received:",
         productsData.products?.length,
-        "items"
+        "items",
       );
       renderProductsTable(productsData.products);
     } else {
@@ -281,20 +320,16 @@ function renderProductsTable(products) {
     tbody.appendChild(row);
   });
 
-  // Add event listeners to new buttons
   addProductEventListeners();
 }
 
 function addProductEventListeners() {
   console.log("🎯 Adding product event listeners...");
 
-  // Edit buttons
   document.querySelectorAll(".action-btn.edit").forEach((btn) => {
-    // Remove any existing listeners first
     btn.replaceWith(btn.cloneNode(true));
   });
 
-  // Re-select and add new listeners
   document.querySelectorAll(".action-btn.edit").forEach((btn) => {
     btn.addEventListener("click", function (e) {
       e.preventDefault();
@@ -773,7 +808,7 @@ function openCamera() {
       .addEventListener("click", function () {
         const preview = document.getElementById("imagePreview");
         const previewContainer = document.getElementById(
-          "imagePreviewContainer"
+          "imagePreviewContainer",
         );
 
         preview.src = canvas.toDataURL("image/jpeg");
@@ -916,7 +951,7 @@ async function handleProductSubmit(e) {
         currentProductForEdit
           ? "Product updated successfully!"
           : "Product added successfully!",
-        "success"
+        "success",
       );
       closeProductModal();
       await loadDashboardData();
@@ -969,7 +1004,8 @@ function updateStats(stats) {
       totalSales: 12500,
       activeOrders: 8,
       activeProducts: 12,
-      averageRating: 4.2,
+      averageRating: 0.0, // Default to 0 if not provided
+      numberOfRatings: 0,
     };
   }
 
@@ -987,7 +1023,28 @@ function updateStats(stats) {
     statCards[2].querySelector("h3").textContent = stats.activeProducts || 12;
   }
   if (statCards[3]) {
-    statCards[3].querySelector("h3").textContent = stats.averageRating || 4.2;
+    statCards[3].querySelector("h3").textContent =
+      stats.averageRating.toFixed(1);
+    statCards[3].querySelector("p").textContent =
+      `Average Rating (${stats.numberOfRatings} reviews)`;
+
+    const trendSpan = statCards[3].querySelector(".stat-trend");
+    if (trendSpan) {
+      const currentRating = stats.averageRating;
+      const previousRating = 0;
+      const difference = (currentRating - previousRating).toFixed(1);
+
+      if (difference > 0) {
+        trendSpan.textContent = `+${difference}`;
+        trendSpan.className = "stat-trend up";
+      } else if (difference < 0) {
+        trendSpan.textContent = difference;
+        trendSpan.className = "stat-trend down";
+      } else {
+        trendSpan.textContent = "0.0";
+        trendSpan.className = "stat-trend";
+      }
+    }
   }
 }
 function renderRecentOrders(orders) {
@@ -1019,18 +1076,94 @@ function renderRecentOrders(orders) {
     const orderNumber =
       order.orderNumber || `ORD-${order._id?.slice(-4) || "0000"}`;
     const itemsCount = order.itemCount || order.items?.length || 0;
+    const buyerName =
+      order.buyer?.fullName ||
+      order.customerName ||
+      order.buyerName ||
+      "Unknown Buyer";
+
+    const shippingAddress = order.shippingAddress;
+    const addressText = shippingAddress
+      ? `${shippingAddress.address || ""}${shippingAddress.city ? `, ${shippingAddress.city}` : ""}`.trim()
+      : "No address provided";
+
+    const paymentMethod = order.paymentMethod || "cash_on_delivery";
+    const formattedPaymentMethod = paymentMethod
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+    const notes = order.notes || "No notes";
+
+    let itemsHtml = "";
+    if (order.items && order.items.length > 0) {
+      console.log("Order items data:", order.items);
+      itemsHtml = order.items
+        .map((item, index) => {
+          const productName =
+            item.productDetails?.name ||
+            item.name ||
+            item.productName ||
+            item.product?.name ||
+            item.title ||
+            item.itemName ||
+            `Item ${index + 1}`;
+
+          console.log(`Item ${index}:`, item);
+
+          return `
+          <div class="order-item-detail">
+            <span class="item-name">${productName}</span>
+            <span class="item-quantity">${item.quantity || 0} ${item.unit || "pcs"}</span>
+            <span class="item-price">${item.price || 0} ETB</span>
+          </div>
+        `;
+        })
+        .join("");
+    }
 
     orderItem.innerHTML = `
       <div class="order-info">
         <h4>${orderNumber}</h4>
+        <p><strong>Buyer:</strong> ${buyerName}</p>
+        <p><strong>Address:</strong> ${addressText}</p>
+        <p><strong>Payment:</strong> ${formattedPaymentMethod}</p>
+        ${notes !== "No notes" ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
+
         <p>${itemsCount} items • ${formatTimeAgo(order.createdAt)}</p>
+          ${
+            itemsHtml
+              ? `
+          <div class="order-items-preview">
+            <strong>Items:</strong>
+            ${itemsHtml}
+          </div>
+        `
+              : ""
+          }
       </div>
       <div class="order-status">
         <span class="status ${statusClass}">${order.status}</span>
         <span class="amount">${order.totalPrice || 0} ETB</span>
       </div>
+      <div class="order-actions">
+        <button class="action-btn view-order-btn" data-id="${order._id}">View</button>
+        ${order.status !== "delivered" ? `<button class="action-btn mark-delivered-btn" data-id="${order._id}">Mark Delivered</button>` : ""}
+      </div>
     `;
     ordersList.appendChild(orderItem);
+  });
+
+  document.querySelectorAll(".view-order-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      viewOrderDetails(e.currentTarget.dataset.id);
+    });
+  });
+
+  document.querySelectorAll(".mark-delivered-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      markAsDelivered(e.currentTarget.dataset.id);
+    });
   });
 }
 
@@ -1050,13 +1183,11 @@ function formatTimeAgo(dateString) {
 }
 
 function showNotification(message, type = "info") {
-  // Remove existing notifications
   const existingNotifications = document.querySelectorAll(
-    ".notification-toast"
+    ".notification-toast",
   );
   existingNotifications.forEach((notification) => notification.remove());
 
-  // Create notification element
   const notification = document.createElement("div");
   notification.className = "notification-toast";
 
@@ -1299,7 +1430,7 @@ function updateUserInfoInSidebar(user) {
   if (farmElement) farmElement.textContent = user.farmName || "Farm";
 
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    user.fullName || "Farmer"
+    user.fullName || "Farmer",
   )}&background=2f8f44&color=fff`;
   if (avatarImg) avatarImg.src = avatarUrl;
   if (userMenuImg) userMenuImg.src = avatarUrl;
@@ -1384,7 +1515,7 @@ function markAsDelivered(orderId) {
     updateOrderStatusInUI(orderId, "delivered");
     showNotification(
       `Order ${orderId} marked as delivered! Buyer has been notified.`,
-      "success"
+      "success",
     );
     updateStatsAfterDelivery();
   } else {
@@ -1406,7 +1537,7 @@ function markAsDelivered(orderId) {
 
 function storeDeliveryNotification(orderId, orderDetails) {
   const notifications = JSON.parse(
-    localStorage.getItem("buyerNotifications") || "[]"
+    localStorage.getItem("buyerNotifications") || "[]",
   );
 
   const notification = {
@@ -1424,7 +1555,7 @@ function storeDeliveryNotification(orderId, orderDetails) {
   localStorage.setItem("buyerNotifications", JSON.stringify(notifications));
 
   const deliveredOrders = JSON.parse(
-    localStorage.getItem("deliveredOrders") || "[]"
+    localStorage.getItem("deliveredOrders") || "[]",
   );
   if (!deliveredOrders.includes(orderId)) {
     deliveredOrders.push(orderId);
@@ -1471,89 +1602,158 @@ function viewOrderDetails(orderId) {
     alert(
       `Order Details for ${orderId}:\nStatus: ${order.status}\nAmount: ${
         order.amount
-      } ETB\nItems: ${order.items ? order.items.length : "N/A"}`
+      } ETB\nItems: ${order.items ? order.items.length : "N/A"}`,
     );
   } else {
     alert(
-      `Order ${orderId} details:\nStatus: Unknown\nPlease mark as delivered to track this order.`
+      `Order ${orderId} details:\nStatus: Unknown\nPlease mark as delivered to track this order.`,
     );
   }
 }
 
-function showNotification(message, type = "info") {
-  const notification = document.createElement("div");
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <div class="notification-content">
-      <i class="fas fa-${
-        type === "success" ? "check-circle" : "info-circle"
-      }"></i>
-      <span>${message}</span>
-    </div>
-    <button class="notification-close">&times;</button>
-  `;
-
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.classList.add("fade-out");
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 300);
-  }, 5000);
-
-  notification
-    .querySelector(".notification-close")
-    .addEventListener("click", () => {
-      notification.classList.add("fade-out");
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 300);
-    });
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  if (!localStorage.getItem("farmerOrders")) {
-    const sampleOrders = [
-      {
-        id: "ORD-7842",
-        status: "processing",
-        amount: 450,
-        items: ["Onions", "Tomatoes", "Potatoes"],
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: "ORD-7841",
-        status: "shipped",
-        amount: 280,
-        items: ["Teff", "Onions"],
-        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: "ORD-7840",
-        status: "delivered",
-        amount: 150,
-        items: ["Tomatoes"],
-        deliveredAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-      },
-    ];
-    localStorage.setItem("farmerOrders", JSON.stringify(sampleOrders));
+async function markAsDelivered(orderId) {
+  if (
+    !confirm(`Are you sure you want to mark order ${orderId} as delivered?`)
+  ) {
+    return;
   }
 
-  const orders = JSON.parse(localStorage.getItem("farmerOrders") || "[]");
-  orders.forEach((order) => {
-    if (order.status === "delivered") {
-      updateOrderStatusInUI(order.id, "delivered");
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status: "delivered" }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      showNotification(
+        `Order ${orderId} marked as delivered! Buyer has been notified.`,
+        "success",
+      );
+      await loadDashboardData();
+    } else {
+      showNotification(
+        data.message || "Failed to update order status",
+        "error",
+      );
     }
-  });
-});
-function showRatingsPage() {
-  window.location.href = "./rating.html";
+  } catch (error) {
+    console.error("Error marking order as delivered:", error);
+    showNotification("Failed to mark order as delivered.", "error");
+  }
 }
-window.showProfileModal = showProfileModal;
-window.closeProfileModal = closeProfileModal;
+
+async function viewOrderDetails(orderId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      headers: getAuthHeaders(),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      const order = data.order;
+      alert(
+        `Order Details for ${order.orderNumber}:\nStatus: ${order.status}\nTotal: ${order.totalPrice} ETB\nItems: ${order.items.length}`,
+      );
+    } else {
+      showNotification(data.message || "Failed to load order details", "error");
+    }
+  } catch (error) {
+    console.error("Error viewing order details:", error);
+    showNotification("Failed to load order details.", "error");
+  }
+}
+
+function updateStatsAfterDelivery() {
+  loadDashboardData();
+}
+
+window.markAsDelivered = markAsDelivered;
+window.viewOrderDetails = viewOrderDetails;
+async function loadFarmerFeedback() {
+  const container = document.getElementById("farmerReviewsList");
+  if (!container) return;
+
+  container.innerHTML = `<p style="color:#666; text-align:center; margin: 1rem 0;">Loading reviews…</p>`;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/farmer/feedback`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Failed to fetch farmer feedback:", response.status, text);
+      container.innerHTML = `<p style="color:#f44336; text-align:center;">Failed to load reviews.</p>`;
+      return;
+    }
+
+    const data = await response.json();
+
+    const reviews = data.reviews || [];
+
+    if (reviews.length === 0) {
+      container.innerHTML = `<p style="color:#666; text-align:center; margin: 1rem 0;">No reviews yet.</p>`;
+      return;
+    }
+
+    const html = reviews
+      .slice(0, 8)
+      .map((r) => {
+        const reviewer = (r.user && r.user.fullName) || "Anonymous";
+        const productName = (r.product && r.product.name) || "Product";
+        const rating = r.rating || 0;
+        const comment = r.comment || "";
+        const date = new Date(
+          r.createdAt || r.updatedAt || Date.now(),
+        ).toLocaleDateString();
+
+        const stars = Array.from({ length: 5 })
+          .map((_, i) =>
+            i < rating
+              ? '<i class="fas fa-star" style="color:#ffc107"></i>'
+              : '<i class="far fa-star" style="color:#ddd"></i>',
+          )
+          .join(" ");
+
+        return `
+          <div class="review-item" style="padding:10px; border-bottom:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+              <div style="display:flex; gap:10px; align-items:center;">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(reviewer)}&background=2f8f44&color=fff" alt="${reviewer}" style="width:40px;height:40px;border-radius:50%;">
+                <div>
+                  <strong style="display:block;">${reviewer}</strong>
+                  <small style="color:#666;">${productName} • ${date}</small>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.9rem">${stars}</div>
+                <div style="font-weight:600; color:#2f8f44; margin-top:6px;">${rating.toFixed ? rating.toFixed(1) : rating}</div>
+              </div>
+            </div>
+            ${comment ? `<p style="margin:10px 0 0 50px; color:#333;">${escapeHtml(comment)}</p>` : ""}
+          </div>
+        `;
+      })
+      .join("");
+
+    container.innerHTML = html;
+  } catch (err) {
+    console.error("Error loading farmer feedback:", err);
+    container.innerHTML = `<p style="color:#f44336; text-align:center;">Error loading reviews.</p>`;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+}
+
