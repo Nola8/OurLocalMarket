@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema(
     farmName: String,
     farmLocation: String,
 
+    averageRating: { type: Number, default: 0 },
+    numberOfRatings: { type: Number, default: 0 },
+
+    earnings: { type: Number, default: 0 }, // New field for farmer earnings
+
     isVerified: { type: Boolean, default: false },
 
     verificationToken: String,
@@ -27,3 +32,4 @@ const userSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("User", userSchema);
+
