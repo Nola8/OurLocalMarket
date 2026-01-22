@@ -28,8 +28,15 @@ html {
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    sans-serif;
   color: var(--text-dark);
   line-height: 1.6;
   overflow-x: hidden;
@@ -204,7 +211,6 @@ body {
   background: var(--text-dark);
   transition: var(--transition);
 }
-/* ===== HERO SECTION ===== */
 .hero {
   min-height: 100vh;
   background: linear-gradient(135deg, #1a2526 0%, #2d3e40 100%);
@@ -1195,4 +1201,3 @@ body {
     flex-direction: column;
   }
 }
-
