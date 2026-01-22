@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -10,7 +10,6 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div class="admin-app-container">
@@ -22,7 +21,6 @@
           </h2>
           <div class="admin-role">Administrator</div>
         </div>
-
         <nav class="admin-nav-menu">
           <a href="admin-dashboard.html" class="admin-nav-item active">
             <i class="fas fa-tachometer-alt"></i>
@@ -60,7 +58,6 @@
             <span>Settings</span>
           </a>
         </nav>
-
         <div
           class="user-info"
           style="
@@ -89,20 +86,17 @@
           <button class="admin-toggle-sidebar" id="toggleSidebar">
             <i class="fas fa-bars"></i>
           </button>
-
           <div class="admin-topbar-title">
             <h1>Dashboard Overview</h1>
             <p style="color: #666; font-size: 0.9rem; margin: 5px 0 0">
               Welcome back, Admin
             </p>
           </div>
-
           <div class="admin-topbar-actions">
             <div class="admin-notifications" onclick="showNotifications()">
               <i class="fas fa-bell"></i>
               <span class="notification-count" id="notificationCount">3</span>
             </div>
-
             <div class="admin-user-menu" onclick="toggleUserMenu()">
               <img
                 src="https://ui-avatars.com/api/?name=Admin&background=4a6fa5&color=fff"
@@ -131,10 +125,9 @@
                 </div>
               </div>
               <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 12.5% from last month
+                <i class="fas fa-arrow-up"></i> 12% from last day
               </div>
             </div>
-
             <div class="stat-card">
               <div class="stat-header">
                 <div>
@@ -146,10 +139,9 @@
                 </div>
               </div>
               <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 8.2% from last month
+                <i class="fas fa-arrow-up"></i> 8% from last day
               </div>
             </div>
-
             <div class="stat-card">
               <div class="stat-header">
                 <div>
@@ -161,15 +153,14 @@
                 </div>
               </div>
               <div class="stat-change positive">
-                <i class="fas fa-arrow-up"></i> 15.3% from yesterday
+                <i class="fas fa-arrow-up"></i> 15% from yesterday
               </div>
             </div>
-
             <div class="stat-card">
               <div class="stat-header">
                 <div>
                   <h3 class="stat-title">Revenue</h3>
-                  <div class="stat-value" id="totalRevenue">₦245,860</div>
+                  <div class="stat-value" id="totalRevenue">2,860 birr</div>
                 </div>
                 <div class="stat-icon revenue">
                   <i class="fas fa-money-bill-wave"></i>
@@ -181,35 +172,7 @@
             </div>
           </div>
 
-          <div class="charts-grid">
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3 class="chart-title">Sales Overview</h3>
-                <select class="chart-select" id="salesPeriod">
-                  <option value="week">This Week</option>
-                  <option value="month" selected>This Month</option>
-                  <option value="year">This Year</option>
-                </select>
-              </div>
-              <div class="chart-container">
-                <canvas id="salesChart"></canvas>
-              </div>
-            </div>
-
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3 class="chart-title">User Growth</h3>
-                <select class="chart-select" id="growthPeriod">
-                  <option value="month" selected>Last 6 Months</option>
-                  <option value="year">Last 2 Years</option>
-                </select>
-              </div>
-              <div class="chart-container">
-                <canvas id="userGrowthChart"></canvas>
-              </div>
-            </div>
-          </div>
-
+          <!-- Recent Orders Table -->
           <div class="recent-orders">
             <div class="section-header">
               <h3 class="section-title">Recent Orders</h3>
@@ -280,9 +243,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <div id="notificationsList">
-            <!-- Notifications will be populated here -->
-          </div>
+          <div id="notificationsList"></div>
         </div>
       </div>
     </div>
@@ -348,11 +309,10 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         initDashboard();
-
         loadDashboardData();
-
         setupEventListeners();
       });
     </script>
   </body>
 </html>
+
