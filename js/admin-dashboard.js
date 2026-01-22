@@ -1,37 +1,37 @@
 const sampleOrders = [
   {
     id: "ORD001",
-    customer: "John Doe",
+    customer: "abebe kebede ",
     date: "2024-01-15",
-    amount: "₦15,200",
+    amount: "1,520 birr",
     status: "delivered",
   },
   {
     id: "ORD002",
-    customer: "Jane Smith",
+    customer: "nolawi abebe",
     date: "2024-01-14",
-    amount: "₦8,500",
+    amount: "850 birr",
     status: "processing",
   },
   {
     id: "ORD003",
-    customer: "Mike Johnson",
+    customer: "Michel desalegn",
     date: "2024-01-14",
-    amount: "₦22,300",
+    amount: "2,230 birr",
     status: "pending",
   },
   {
     id: "ORD004",
-    customer: "Sarah Wilson",
+    customer: "Sara desalegn",
     date: "2024-01-13",
-    amount: "₦12,800",
+    amount: "1,280 birr",
     status: "delivered",
   },
   {
     id: "ORD005",
-    customer: "Chris Brown",
+    customer: "Kebede Tadesse",
     date: "2024-01-13",
-    amount: "₦18,900",
+    amount: "1,890 birr",
     status: "cancelled",
   },
 ];
@@ -39,9 +39,9 @@ const sampleOrders = [
 const sampleProducts = [
   {
     id: 1,
-    name: "Organic carrots",
-    category: "Grain",
-    price: "₦3,500",
+    name: "Organic Carrots",
+    category: "Vegetable",
+    price: "70 birr",
     sales: 142,
     rating: 4.8,
     image: "./pictures/image.jpg",
@@ -50,7 +50,7 @@ const sampleProducts = [
     id: 2,
     name: "Fresh Potatoes",
     category: "Vegetable",
-    price: "₦1,200",
+    price: "89 birr",
     sales: 98,
     rating: 4.5,
     image: "./pictures/potatoes.jpg",
@@ -58,8 +58,8 @@ const sampleProducts = [
   {
     id: 3,
     name: "Tomatoes",
-    category: "Grain",
-    price: "₦8,500",
+    category: "Vegetable",
+    price: "80 birr",
     sales: 67,
     rating: 4.9,
     image: "./pictures/tomatoes.jpg",
@@ -68,7 +68,7 @@ const sampleProducts = [
     id: 4,
     name: "Avocado",
     category: "Fruit",
-    price: "₦2,800",
+    price: "40 birr",
     sales: 54,
     rating: 4.7,
     image: "./pictures/Avocado.jpg",
@@ -102,24 +102,20 @@ const sampleNotifications = [
 function checkAdminAuth() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
-
   if (!token || !user) {
+    window.location.href = "login.html";
     return false;
   }
-
   if (user.role !== "admin") {
     alert("Access denied. Admin only.");
+    window.location.href = "index.html";
     return false;
   }
-
   return true;
 }
 
 function initDashboard() {
   updateAdminInfo();
-
-  initCharts();
-
   loadOrdersTable();
   loadTopProducts();
   loadNotifications();
@@ -136,12 +132,10 @@ function updateAdminInfo() {
       user.fullName || "Admin User";
 
     const avatars = document.querySelectorAll(
-      "#adminAvatar, .admin-user-avatar"
+      "#adminAvatar, .admin-user-avatar",
     );
     avatars.forEach((avatar) => {
-      avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        user.fullName || "Admin"
-      )}&background=4a6fa5&color=fff`;
+      avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || "Admin")}&background=4a6fa5&color=fff`;
     });
   }
 }
@@ -153,7 +147,6 @@ function toggleSidebar() {
   const logoText = document.getElementById("logoText");
 
   sidebarCollapsed = !sidebarCollapsed;
-
   if (sidebarCollapsed) {
     sidebar.classList.add("collapsed");
     mainContent.classList.add("expanded");
@@ -184,7 +177,6 @@ function toggleUserMenu() {
 document.addEventListener("click", function (event) {
   const dropdown = document.getElementById("userMenuDropdown");
   const userMenu = document.querySelector(".admin-user-menu");
-
   if (
     dropdown &&
     userMenu &&
@@ -197,16 +189,15 @@ document.addEventListener("click", function (event) {
 
 function loadDashboardData() {
   console.log("Loading dashboard data...");
-
   updateStats();
 }
 
 function updateStats() {
   const stats = {
-    totalUsers: 1248,
-    totalProducts: 156,
-    todayOrders: 42,
-    totalRevenue: "₦245,860",
+    totalUsers: 18,
+    totalProducts: 16,
+    todayOrders: 15,
+    totalRevenue: "2,860 birr",
   };
 
   document.getElementById("totalUsers").textContent =
@@ -216,10 +207,8 @@ function updateStats() {
   document.getElementById("totalRevenue").textContent = stats.totalRevenue;
 }
 
-// Load orders table
 function loadOrdersTable() {
   const tableBody = document.getElementById("ordersTableBody");
-
   tableBody.innerHTML = sampleOrders
     .map(
       (order) => `
@@ -228,31 +217,25 @@ function loadOrdersTable() {
             <td>${order.customer}</td>
             <td>${order.date}</td>
             <td>${order.amount}</td>
-            <td><span class="order-status status-${order.status}">${
-        order.status.charAt(0).toUpperCase() + order.status.slice(1)
-      }</span></td>
+            <td><span class="order-status status-${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
             <td>
-                <button class="view-btn" onclick="viewOrder('${
-                  order.id
-                }')" style="padding: 5px 10px; background: #4a6fa5; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <button class="view-btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; background: #4a6fa5; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     View
                 </button>
             </td>
         </tr>
-    `
+    `,
     )
     .join("");
 }
 
 function loadTopProducts() {
   const productsGrid = document.getElementById("topProductsGrid");
-
   productsGrid.innerHTML = sampleProducts
     .map(
       (product) => `
         <div class="product-card-admin">
-            <img src="${product.image}" alt="${product.name}" class="product-image-admin"
-                 onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'">
+            <img src="${product.image}" alt="${product.name}" class="product-image-admin" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'">
             <div class="product-info-admin">
                 <div class="product-name-admin">${product.name}</div>
                 <div class="product-category-admin">${product.category}</div>
@@ -263,7 +246,7 @@ function loadTopProducts() {
                 </div>
             </div>
         </div>
-    `
+    `,
     )
     .join("");
 }
@@ -277,100 +260,16 @@ function loadNotifications() {
   notificationsList.innerHTML = sampleNotifications
     .map(
       (notification) => `
-        <div class="notification-item" style="padding: 10px; border-bottom: 1px solid #eee; ${
-          !notification.read ? "background: #f8f9fa;" : ""
-        }">
+        <div class="notification-item" style="padding: 10px; border-bottom: 1px solid #eee; ${!notification.read ? "background: #f8f9fa;" : ""}">
             <div style="display: flex; justify-content: space-between;">
                 <strong>${notification.title}</strong>
                 <small style="color: #666;">${notification.time}</small>
             </div>
             <p style="margin: 5px 0 0; color: #555;">${notification.message}</p>
         </div>
-    `
+    `,
     )
     .join("");
-}
-
-function initCharts() {
-  const salesCtx = document.getElementById("salesChart").getContext("2d");
-  const salesChart = new Chart(salesCtx, {
-    type: "line",
-    data: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-      datasets: [
-        {
-          label: "Sales (₦)",
-          data: [65000, 81000, 72000, 95000, 89000, 102000],
-          borderColor: "#4a6fa5",
-          backgroundColor: "rgba(74, 111, 165, 0.1)",
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: "rgba(0, 0, 0, 0.05)",
-          },
-        },
-        x: {
-          grid: {
-            color: "rgba(0, 0, 0, 0.05)",
-          },
-        },
-      },
-    },
-  });
-
-  const growthCtx = document.getElementById("userGrowthChart").getContext("2d");
-  const growthChart = new Chart(growthCtx, {
-    type: "bar",
-    data: {
-      labels: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [
-        {
-          label: "New Users",
-          data: [85, 92, 78, 120, 135, 150],
-          backgroundColor: "#2f8f44",
-          borderColor: "#267a38",
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: "rgba(0, 0, 0, 0.05)",
-          },
-        },
-        x: {
-          grid: {
-            color: "rgba(0, 0, 0, 0.05)",
-          },
-        },
-      },
-    },
-  });
 }
 
 function addNewProduct() {
@@ -426,18 +325,6 @@ function setupEventListeners() {
       closeNotifications();
     }
   });
-
-  document
-    .getElementById("salesPeriod")
-    .addEventListener("change", function () {
-      console.log("Sales period changed to:", this.value);
-    });
-
-  document
-    .getElementById("growthPeriod")
-    .addEventListener("change", function () {
-      console.log("Growth period changed to:", this.value);
-    });
 }
 
 window.toggleSidebar = toggleSidebar;
