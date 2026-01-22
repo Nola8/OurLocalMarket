@@ -18,22 +18,18 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    // Keep original extension
     const ext = path.extname(file.originalname);
     cb(null, "product-" + uniqueSuffix + ext);
   },
 });
 
-// File filter function
 const fileFilter = (req, file, cb) => {
-  // Accept images only
   if (
     !file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|webp|WEBP)$/)
   ) {
@@ -103,7 +99,7 @@ router.post(
   protect,
   farmerOnly,
   handleUpload,
-  productController.createProduct
+  productController.createProduct,
 );
 
 router.put(
@@ -111,7 +107,7 @@ router.put(
   protect,
   farmerOnly,
   handleUpload,
-  productController.updateProduct
+  productController.updateProduct,
 );
 
 router.delete("/:id", protect, farmerOnly, productController.deleteProduct);
@@ -120,42 +116,42 @@ router.get(
   "/farmer/my-products",
   protect,
   farmerOnly,
-  productController.getFarmerProducts
+  productController.getFarmerProducts,
 );
 
 router.get(
   "/farmer/stats",
   protect,
   farmerOnly,
-  productController.getFarmerStats
+  productController.getFarmerStats,
 );
 
 router.get(
   "/farmer/feedback",
   protect,
   farmerOnly,
-  productController.getFarmerFeedback
+  productController.getFarmerFeedback,
 );
 
 router.get(
   "/admin/all",
   protect,
   adminOnly,
-  productController.getAllProductsAdmin
+  productController.getAllProductsAdmin,
 );
 
 router.put(
   "/admin/:id/status",
   protect,
   adminOnly,
-  productController.updateProductStatus
+  productController.updateProductStatus,
 );
 
 router.delete(
   "/admin/:id",
   protect,
   adminOnly,
-  productController.deleteProduct
+  productController.deleteProduct,
 );
 
 router.get("/health/check", (req, res) => {
