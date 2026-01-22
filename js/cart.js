@@ -32,14 +32,14 @@ function loadCartItems() {
                     <p>${item.price} ETB per ${item.unit}</p>
                 </div>
                 <div class="item-quantity">
-                    <button onclick="updateQuantity(${item.id}, -1)">-</button>
+                    <button onclick="updateQuantity('${item.id}', -1)">-</button>
                     <span>${item.quantity}</span>
-                    <button onclick="updateQuantity(${item.id}, 1)">+</button>
+                    <button onclick="updateQuantity('${item.id}', 1)">+</button>
                 </div>
                 <div class="item-total">
                     ${itemTotal} ETB
                 </div>
-                <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
+                <button class="remove-btn" onclick="removeFromCart('${item.id}')">×</button>
             </div>
         `;
   });
@@ -84,4 +84,5 @@ function updateCartCount() {
   const cartCountElements = document.querySelectorAll("#cartCount");
   cartCountElements.forEach((el) => (el.textContent = totalItems));
 }
+
 
